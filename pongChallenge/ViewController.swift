@@ -8,13 +8,14 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UICollisionBehaviorDelegate {
     
     var ball = UIView()
     var paddle = UIView()
     var botPaddle = UIView()
     var dynamicAnimator = UIDynamicAnimator()
     var playerOneStart = true
+    var firstServe = true
     var scoreBoardOne = UILabel()
     var scoreBoardTwo = UILabel()
     var scoreOne = 0
@@ -22,18 +23,28 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        dynamicAnimator = UIDynamicAnimator(referenceView: view)
+        
         //Configure scoreboard
+        scoreBoardOne.text = "0"
         scoreBoardOne.alpha = 0.5
         scoreBoardOne.textColor = UIColor.redColor()
         scoreBoardOne.frame = CGRectMake(view.center.x - 30, view.center.y, 25, 35)
         view.addSubview(scoreBoardOne)
+        
+        scoreBoardTwo.text = "0"
+        scoreBoardTwo.alpha = 0.5
+        scoreBoardTwo.textColor = UIColor.blueColor()
+        scoreBoardTwo.frame = CGRectMake(view.center.x + 30, view.center.y, 25, 35)
+        view.addSubview(scoreBoardTwo)
+
+        
         
         //Add a black ball object to the view
         ball = UIView(frame: CGRectMake(view.center.x, view.center.y, 20, 20))
         ball.backgroundColor = UIColor.blackColor()
         ball.layer.cornerRadius = 10
         ball.clipsToBounds = true
-        
         view.addSubview(ball)
         
         //Add a red paddle object to the view
@@ -55,6 +66,7 @@ class ViewController: UIViewController {
         
         //Create dynamic behavior for the ball
         let ballDynamicBehavior = UIDynamicItemBehavior(items: [ball])
+        ballDynamicBehavior.density = 1.0
         ballDynamicBehavior.friction = 0
         ballDynamicBehavior.resistance = 0
         ballDynamicBehavior.elasticity = 1.0
@@ -87,6 +99,7 @@ class ViewController: UIViewController {
         let collisionBehavior = UICollisionBehavior(items: [ball, paddle, botPaddle])
         collisionBehavior.translatesReferenceBoundsIntoBoundary = true
         collisionBehavior.collisionMode = .Everything
+        collisionBehavior.collisionDelegate = self
         dynamicAnimator.addBehavior(collisionBehavior)
         
         //create dynamic animator for paddle
@@ -109,6 +122,26 @@ class ViewController: UIViewController {
         dynamicAnimator.updateItemUsingCurrentState(paddle)
     }
     
+    func collisionBehavior(behavior: UICollisionBehavior, beganContactForItem item: UIDynamicItem, withBoundaryIdentifier identifier: NSCopying?, atPoint p: CGPoint) {
+        print(p)
+        
+        
+        if p.y < 10 {
+            scoreOne += 1
+            scoreBoardOne.text = "\(scoreOne)"
+        }
+        else if p.y > view.frame.height - 10 {
+            scoreTwo += 1
+            scoreBoardTwo.text = "\(scoreTwo)"
+        }
+        
+        if !firstServe {
+            playerOneStart = !playerOneStart
+        }
+        firstServe = !firstServe
+        
+        ball.frame.origin = CGPoint(x: view.center.x , y: view.center.y)
+    }
     
     
 
