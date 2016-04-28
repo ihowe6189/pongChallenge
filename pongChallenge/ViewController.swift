@@ -125,22 +125,29 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     func collisionBehavior(behavior: UICollisionBehavior, beganContactForItem item: UIDynamicItem, withBoundaryIdentifier identifier: NSCopying?, atPoint p: CGPoint) {
         print(p)
         
-        
         if p.y < 10 {
             scoreOne += 1
             scoreBoardOne.text = "\(scoreOne)"
+            ball.center = CGPoint(x: view.center.x , y: view.center.y)
         }
         else if p.y > view.frame.height - 10 {
             scoreTwo += 1
             scoreBoardTwo.text = "\(scoreTwo)"
+            ball.center = CGPoint(x: view.center.x , y: view.center.y)
         }
         
-        if !firstServe {
-            playerOneStart = !playerOneStart
+        if p.y < 10 && p.y > view.frame.height - 10 {
+            if !firstServe {
+                playerOneStart = !playerOneStart
+            }
+            firstServe = !firstServe
+            resetBall()
         }
-        firstServe = !firstServe
         
-        ball.frame.origin = CGPoint(x: view.center.x , y: view.center.y)
+    }
+    
+    func resetBall() {
+        
     }
     
     
