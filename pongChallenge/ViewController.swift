@@ -16,6 +16,7 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     var dynamicAnimator = UIDynamicAnimator()
     var playerOneStart = true
     var firstServe = true
+    var singleServeMode = false
     var scoreBoardOne = UILabel()
     var scoreBoardTwo = UILabel()
     var scoreOne = 0
@@ -63,52 +64,7 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         
         //Initialize the dynamic aminator
         dynamicAnimator = UIDynamicAnimator(referenceView: view)
-        
-        //Create dynamic behavior for the ball
-        let ballDynamicBehavior = UIDynamicItemBehavior(items: [ball])
-        ballDynamicBehavior.density = 1.0
-        ballDynamicBehavior.friction = 0
-        ballDynamicBehavior.resistance = 0
-        ballDynamicBehavior.elasticity = 1.0
-        dynamicAnimator.addBehavior(ballDynamicBehavior)
-        //Create a push behavior for the ball
-        let pushBehavior = UIPushBehavior(items: [ball], mode: .Instantaneous)
-        var xVector = 0.0
-        var yVector = 0.0
-        while xVector == 0 || yVector == 0 {
-            let rng = drand48()
-            if rng > 0.2 {
-                if xVector != 0 {
-                    yVector = rng
-                }
-                else {
-                    xVector = rng
-                }
-            }
-        }
-        if !playerOneStart {
-            yVector = -1 * yVector
-            xVector = -1 * xVector
-        }
-        pushBehavior.pushDirection = CGVectorMake(CGFloat(xVector), CGFloat(yVector))
-        
-        pushBehavior.magnitude = 0.25
-        dynamicAnimator.addBehavior(pushBehavior)
-        
-        //Create collision behaviors so ball can collide w/ other objects
-        let collisionBehavior = UICollisionBehavior(items: [ball, paddle, botPaddle])
-        collisionBehavior.translatesReferenceBoundsIntoBoundary = true
-        collisionBehavior.collisionMode = .Everything
-        collisionBehavior.collisionDelegate = self
-        dynamicAnimator.addBehavior(collisionBehavior)
-        
-        //create dynamic animator for paddle
-        let paddleDynamicBehavior = UIDynamicItemBehavior(items: [paddle, botPaddle])
-        paddleDynamicBehavior.density = 10000
-        paddleDynamicBehavior.resistance = 100
-        paddleDynamicBehavior.allowsRotation = false
-        dynamicAnimator.addBehavior(paddleDynamicBehavior)
-        
+        resetAnimator()
     }
 
     override func didReceiveMemoryWarning() {
@@ -128,28 +84,91 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         if p.y < 10 {
             scoreOne += 1
             scoreBoardOne.text = "\(scoreOne)"
-            ball.center = CGPoint(x: view.center.x , y: view.center.y)
         }
         else if p.y > view.frame.height - 10 {
             scoreTwo += 1
             scoreBoardTwo.text = "\(scoreTwo)"
-            ball.center = CGPoint(x: view.center.x , y: view.center.y)
         }
         
-        if p.y < 10 && p.y > view.frame.height - 10 {
-            if !firstServe {
+        if p.y < 10 || p.y > view.frame.height - 10 {
+            if abs(scoreOne - scoreTwo) >= 2 && scoreOne >= 11 || scoreTwo >= 11 {
+                if scoreOne > scoreTwo {
+                    announceVictor(0)
+                }
+                else {
+                    announceVictor(1)
+                }
+            }
+            if scoreOne == 10 && scoreTwo == 10 {
+                singleServeMode = true
+            }
+            if !firstServe || singleServeMode{
                 playerOneStart = !playerOneStart
             }
             firstServe = !firstServe
-            resetBall()
+            resetAnimator()
         }
         
     }
     
-    func resetBall() {
+    func resetAnimator() {
+        dynamicAnimator.removeAllBehaviors()
+        ball.center = CGPoint(x: view.center.x , y: view.center.y)
         
+        //Create dynamic behavior for the ball
+        let ballDynamicBehavior = UIDynamicItemBehavior(items: [ball])
+        ballDynamicBehavior.density = 1.0
+        ballDynamicBehavior.friction = 0
+        ballDynamicBehavior.resistance = 0
+        ballDynamicBehavior.elasticity = 1.0
+        dynamicAnimator.addBehavior(ballDynamicBehavior)
+        //Create a push behavior for the ball
+        
+        let timer = NSTimer.scheduledTimerWithTimeInterval(2, target: self, selector: "launchBall", userInfo: nil, repeats: false)
+        
+        //Create collision behaviors so ball can collide w/ other objects
+        let collisionBehavior = UICollisionBehavior(items: [ball, paddle, botPaddle])
+        collisionBehavior.translatesReferenceBoundsIntoBoundary = true
+        collisionBehavior.collisionMode = .Everything
+        collisionBehavior.collisionDelegate = self
+        dynamicAnimator.addBehavior(collisionBehavior)
+        
+        //create dynamic animator for paddle
+        let paddleDynamicBehavior = UIDynamicItemBehavior(items: [paddle, botPaddle])
+        paddleDynamicBehavior.density = 10000
+        paddleDynamicBehavior.resistance = 100
+        paddleDynamicBehavior.allowsRotation = false
+        dynamicAnimator.addBehavior(paddleDynamicBehavior)
     }
     
+    func launchBall() {
+        let pushBehavior = UIPushBehavior(items: [ball], mode: .Instantaneous)
+        var xVector = 0.0
+        var yVector = 0.0
+        while xVector == 0 || yVector == 0 {
+            let rng = drand48()
+            if rng > 0.2 {
+                if xVector != 0 {
+                    yVector = rng
+                }
+                else {
+                    xVector = rng
+                }
+            }
+        }
+        if !playerOneStart {
+            yVector = -1 * yVector
+            //xVector = -1 * xVector
+        }
+        pushBehavior.pushDirection = CGVectorMake(CGFloat(xVector), CGFloat(yVector))
+        
+        pushBehavior.magnitude = 0.25
+        dynamicAnimator.addBehavior(pushBehavior)
+    }
+    
+    func announceVictor(player: Int) {
+        
+    }
     
 
 }
